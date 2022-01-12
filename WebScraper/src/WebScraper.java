@@ -1,6 +1,10 @@
+import java.awt.*;
+import java.awt.image.MemoryImageSource;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
+
+import javax.swing.*;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -8,36 +12,67 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class WebScraper {
-	public static void main(String [] args) throws IOException {
-//		Create a scanner object
-		Scanner scanObj = new Scanner(System.in);
-		System.out.println("What do you want to search for?:");
-//		Take input from user
-		String searchQuery = scanObj.nextLine();
-		searchQuery = searchQuery.replace(" ", "+");
-//JSOUp initialization
-		Document google = Jsoup.connect("https://www.google.com/search?q=" + searchQuery).get();
-		Elements label = google.select(".kno-rdesc span");
-		Elements label2 = google.select("#rso link");
+	public static String getData(String c) throws Exception {
+		StringBuffer br = new StringBuffer();
+		br.append("<html>" + "<body style='text-align: center; color: red;'>");
+		br.append(c.toUpperCase() + "<br>");
 		
-		System.out.println(label2);
-//		Elements data = google.select("td.infobox-data");
+		String url = "https://www.worldometers.info/coronavirus/country/"+ c +"/";
+		Document doc = Jsoup.connect(url).get();
 		
-//		ArrayList<String> hyperlinks = new ArrayList<String>();
+		// #maincounter-wrap
+		Elements elements = doc.select("#maincounter-wrap");
+		elements.forEach((e) -> {
+			String text = e.select("h1").text();
+			String count = e.select(".maincounter-number>span").text();
+			br.append(text).append(count).append("<br>");
+		});
 		
-//		System.out.println(label);
+		br.append("</body>" + "</html>");
+		return br.toString();
+	}
+	
+	public static void main(String[] args) throws Exception {
+		/*
+		 * try (Scanner sc = new Scanner(System.in)) {
+		 * System.out.println("Enter Country Name: "); String co = sc.nextLine();
+		 * getData(co); }
+		 */
 		
-		for (Element eachSpan: label) {
-			System.out.println(eachSpan.text());	
-		}
+//		Creating a GUI
+		JFrame root = new JFrame("Details of Country");
+		root.setSize(500,500);
+		Font f = new Font("Poppins",Font.BOLD,30);
 		
-//		for (Element e:pageElements) {
-//			hyperlinks.add("Text: " + e.text());
-//			hyperlinks.add("Link: " + e.attr("href"));
-//		}
+		// textfield
+		JTextField field = new JTextField();
 		
-//		for (String s : hyperlinks) {
-//			System.out.println(s);
-//		}
+		// label
+		JLabel dataL = new JLabel();
+		field.setFont(f);
+		dataL.setFont(f);
+		field.setHorizontalAlignment(SwingConstants.CENTER);
+		dataL.setHorizontalAlignment(SwingConstants.CENTER);
+	
+		// button
+		JButton button = new JButton("Get");
+		
+		button.addActionListener(event -> {
+			//click:
+			try {
+				String maindata = field.getText();
+				String result = getData(maindata);
+				dataL.setText(result);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+		});
+	
+		button.setFont(f);
+		root.setLayout(new BorderLayout());
+		root.add(field,BorderLayout.NORTH);
+		root.add(dataL,BorderLayout.CENTER);
+		root.add(button,BorderLayout.SOUTH);
+		root.setVisible(true);
 	}
 }
